@@ -1,40 +1,52 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useRef } from 'react';
 import { IoSearch } from 'react-icons/io5';
 import axios from 'axios';
-
+import { useNavigate } from "react-router-dom"
 function Home() {
   const [books, setBooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
-
+  const inputRef=useRef(null)
+  const navigate = useNavigate()
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const response = await axios.get(`https://openlibrary.org/search.json?title=${search || ""}`);
 
-        setBooks(response.data.docs);
-        setIsLoading(false);
+      try {
+        const url = search ? `https://openlibrary.org/search.json?isbn=${search}` : "https://openlibrary.org/search.json?title=the+lord+of+the+rings"
+        const clearData=setTimeout(async()=>{
+          const response = await axios.get(url);
+          setBooks(response.data.docs);
+          setIsLoading(false);
+        })
+        inputRef.current.focus()
+        return ()=>{
+          clearTimeout(clearData)
+        }
       } catch (err) {
         setIsLoading(false);
         console.log(err);
       }
     };
+
     fetchData();
   }, [search]);
 
-  const handleChange = (e) => {
-    setSearch(e.target.value);
-  };
 
-  if (isLoading) {
-    return <h2>Loading...</h2>;
+  const handleChange = (e) => {
+    const inputValue = e.target.value.slice(0, 14);
+    setSearch(inputValue);
+  };
+  const handleNavigate = (index) => {
+    navigate(`/about`,{state:index})
   }
+
+
 
   return (
     <>
       <div className='background__image'>
         <div className='text-white text-center content-details'>
-          <h2>"Find the Books"</h2>
+          <h1>"Find the Books"</h1>
           <p>
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Dignissimos, similique. Expedita a qui illo ut
             natus aspernatur similique accusantium? Minima in architecto id consectetur eaque inventore minus similique.
@@ -44,10 +56,13 @@ function Home() {
             <form>
               <input
                 className='form-control'
-                type='text'
-                placeholder='Search'
+                type='number'
+                placeholder='Enter only isbn number'
                 aria-label='Search'
+                value={search}
                 onChange={handleChange}
+                ref={inputRef}
+                maxLength={7}
               />
               <span className='search__icon'>
                 <IoSearch color='black' fontSize={20} />
@@ -56,15 +71,18 @@ function Home() {
           </div>
         </div>
       </div>
-      <div className='row mt-3'>
-
-        {books.map((book) => (
-          <div className='col-lg-2 mb-2' key={book.key}>
-            <div className='card'>
+      {isLoading && <p>Loading...</p>}
+      <div className='Books mt-3'>
+        {books.map((book, index) => (
+          <div className='Books__content mb-2' key={index}>
+            <div className='card' onClick={() => handleNavigate(book)}>
               <div className='card-body'>
-                <h5 className='card-title'>{book.title}</h5>
-                <h6 className='card-subtitle mb-2 text-muted'>{book.author_name ? book.author_name.join(', ') : 'Unknown'}</h6>
-                <p className='card-text'>{book.publisher ? book.publisher[0] : 'Unknown'}</p>
+                <h5 className='card-title'>Title:{book?.title.slice(0, 24)}...</h5>
+
+
+                <h6 className='card-subtitle mb-2 text-muted'>Author Name:{book?.author_name ? book?.author_name.slice(0, 2).join(", ") : <span className='text-danger'>Unknown</span>}</h6>
+                <p className='card-text'>Publisher:{book?.publisher ? book?.publisher.slice(0, 1).join(", ") : <span className='text-danger'>Unknown</span>}</p>
+                <p className='card-text'>isbn:{book.isbn ? book.isbn.slice(0, 2).join(", ") : <span className='text-danger'>Unknown</span>}</p>
               </div>
             </div>
           </div>

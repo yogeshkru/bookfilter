@@ -1,16 +1,17 @@
 import React, { useState } from 'react'
-import { NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { CiMenuBurger } from "react-icons/ci";
 function Header() {
     const [state,setState]=useState(false)
     const handleClick=()=>{
         setState(!state)
     }
+   
     return (
 
         <div className='headers '>
             <div className='headers__width'>
-                <h1 >Books</h1>
+                <h1>Books</h1>
                 <p className='header_icons' onClick={handleClick}><CiMenuBurger  fontSize={20} className='fw-bold'/></p>
             </div>
             <div className="headers__width">
